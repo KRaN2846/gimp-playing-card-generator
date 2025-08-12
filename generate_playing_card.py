@@ -1,18 +1,38 @@
-from gimpfu import *
+from gimpfu import register, main, pdb
+from config import config
+from layout.size import create_size
 
-def generate_playing_card(width, height, margin, border_thickness, corner_radius, rank, suit, font, font_size):
-    # colors of ranks
-    red_suits = ["♥", "♦"]
-    # hearts= чірва, clubs=хрестя, diamonds=бубна, spades=піка
-    suit_symbols = {'hearts':"♥",'clubs': "♣",'diamonds': "♦",'spades': "♠"}
-    suit_symbol = suit_symbols.get(suit, "?")
-    text_color = (255, 0, 0) if suit_symbol in red_suits else (0, 0, 0)
+# Точка входу для GIMP, з мінімальною інтеграцією
+def plugin_entry_point(width, height,suit,rank):
+    config.width = width
+    config.height = height
+    config.suit = suit
+    config.rank = rank
 
-    # Image creation
-    image = gimp.Image(width, height, RGB)
-    background = gimp.Layer(image, "Background", width, height, RGB_IMAGE, 100, NORMAL_MODE)
-    pdb.gimp_drawable_fill(background, BACKGROUND_FILL)
-    image.add_layer(background, 0)
+    # Викликаємо бізнес-логіку
+    image, layer = create_canvas(config)
+    # можна одразу відкрити у вікні GIMP
+    gimp.Display(image)
+    gimp.Displays_flush()
 
-    # Adding a frame layer
-    border_layer = gimp
+register(
+    "python_fu_playing_card",
+    "Playing Card Generator",
+    "Створює шаблон гральної карти",
+    "KRaN",
+    "KRaN",
+    "2025",
+    "<Image>/Filters/Custom/Playing Card Generator",
+    "",
+    [
+        (PF_INT, "width", "Ширина (px)", config.width),
+        (PF_INT, "height", "Висота (px)", config.height),
+        (PF_STRING, "suit", "Масть", config.suit),
+        (PF_STRING, "rank", "Ранг", config.rank),
+    ],
+    [],
+    plugin_entry_point
+)
+
+if __name__ == "__main__":
+    main()
